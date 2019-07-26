@@ -1,0 +1,100 @@
+import java.util.Scanner;
+public class pack{
+    static double bestp,mis;         //最优总价值，当前背包最大价值
+    static int [] vs=new int[100];   //当前的选取状态
+    static int [] best=new int[100];   //存储最佳路径
+    static int [] bbs=new int[100];    //当前所选物品属性总和
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);    
+        int[] n =new int[10];
+        int[] l =new int[100];      //n和l代表物品数量和有多少行的物品
+        double[][] value = new double[10][200];        //value是物品价值
+        int[][][] du = new int[10][200][200];        //du是存储物品质量
+        int[][] K = new int[10][200];            //K是背包容量上限
+
+        
+
+        for(int a=0;a<7;a++){
+            n[a] = sc.nextInt();           //输入
+            l[a] = sc.nextInt();
+            for(int i=0;i<n[a];i++){
+                value [a][i] = sc.nextDouble();
+            }
+            for(int j=0;j<l[a];j++){
+                for(int i=0;i<n[a];i++){
+                    du [a][j][i]=sc.nextInt();
+                }
+            }
+
+            for(int i=0;i<l[a];i++){
+                K [a][i] = sc.nextInt();
+            }
+            pack.jav(value[a],n[a],l[a],K[a],du[a]);
+        }
+
+    }
+
+
+    public static void jav(double[] value, int n,int l,int[] K,int[][] du){
+
+         double mis=0;
+         vs=new int[100];
+         bestp=mis=0;
+        best=new int[100];
+        bbs=new int[100];
+        Backtrack(0,value,n,l, K, du);   //调用回溯法
+        System.out.print("装入的物品[");
+        for(int i=0;i<n;++i)
+            System.out.print(best[i]+" ");
+        System.out.println("]");
+        System.out.println("最优总价值为"+bestp);     //输出放入物品以及物品最优总价值
+
+
+    }
+    
+    public  static double Bound(int i,int n,double value[])        
+    {
+        double nis=0;     //当前背包价值
+        while (i<n){       
+            nis+=value[i];     
+            i++;
+        }
+        return mis+nis;
+    }
+    public static void Backtrack(int t,double[] value, int n,int l,int[] K,int[][] du)      //回溯函数
+    {
+        int j;               //已搜索到根节点
+        if(t>=n){
+            if(mis<=bestp) return;        //如果搜索到叶子节点
+            for(j=0;j<n;++j)
+                best[j]=vs[j];            //最大价值变成当前背包得总价值，保存最优选取方案
+            bestp=mis;
+            return;
+        }
+        
+        int flag=0;  //回溯判断一下是否所有的背包都符合条件，如果符合则装入物品，递归下一物品，不符合则直接递归,通过判断来知道是否要将物品放入背包。
+        for(int i=0;i<l;++i){
+            if(bbs[i]+du[i][t]>K[i]){
+                flag=1;
+                break;
+            }
+        }
+        /*搜索左子树*/
+        if(flag==0){
+            vs[t]=1;           //装入物品搜索左子树
+            for(int i=0;i<l;++i)
+               bbs[i]+=du[i][t];      //表示当前属性值总和加上下一个属性值
+            mis+=value[t];            //更新当前背包的最大价值
+            Backtrack(t+1,value,n,l,K,du);        //调用回溯法
+            for(int i=0;i<l;++i)
+                bbs[i]-=du[i][t];        //当前属性值总和减去上一个属性值
+            mis-=value[t];               //当前背包的最大价值恢复为原来的价值
+        }
+        /*搜索右子树*/
+        if (Bound(t+1,n,value)>bestp){
+            vs[t]=0;                 //不装入这个物品，直接搜索右边的节点
+            Backtrack(t+1,value,n,l,K,du);      //调用回溯法
+        }//判断左节点是否为可行节点，当左节点可行，就优先搜索左子树，不满足则进入右子树。
+    }
+
+}
